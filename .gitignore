@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Downloaded datasets
+data/raw/
+data/processed/
+
+# macOS
+.DS_Store
