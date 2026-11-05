@@ -13,17 +13,36 @@ RAW_DIR = Path("data/raw/bls")
 OUTPUT_FILE = Path("data/processed/bls_documents.jsonl")
 EASTERN = ZoneInfo("America/New_York")
 
+REPORTS = {
+    "cpi": {
+        "folder": Path("data/raw/bls"),
+        "output": Path("data/processed/bls_documents.jsonl"),
+        "expected": 8, # CHANGE THIS DEPENDING ON HOW MANY DOCS YOU IMPORT
+        "heading": re.compile(
+            r"CONSUMER PRICE INDEX\s*[-–]\s*([A-Z]+\s+\d{4})",
+            re.IGNORECASE,
+        ),
+    },
+    "employment": {
+        "folder": Path("data/raw/bls_employment"),
+        "output": Path("data/processed/bls_employment_documents.jsonl"),
+        "expected": 11, # CHANGE THIS DEPENDING ON HOW MANY DOCS YOU IMPORT
+        "heading": re.compile(
+            r"THE EMPLOYMENT SITUATION\s*[-–]{1,2}\s*([A-Z]+\s+\d{4})",
+            re.IGNORECASE,
+        ),
+    },
+}
+
 SOURCE_PATTERN = re.compile(
-    r"saved from url=\(\d+\)(https?://[^\s]+)"
+    r"saved from url=\(\d+\)(https?://[^\s]+)",
+    re.IGNORECASE,
 )
+
 RELEASE_PATTERN = re.compile(
     r"8:30\s*a\.m\.\s*\(ET\)\s+"
     r"(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+"
     r"([A-Za-z]+\s+\d{1,2},\s+\d{4})",
-    re.IGNORECASE,
-)
-REPORT_PATTERN = re.compile(
-    r"CONSUMER PRICE INDEX\s*[-–]\s*([A-Z]+\s+\d{4})",
     re.IGNORECASE,
 )
 
