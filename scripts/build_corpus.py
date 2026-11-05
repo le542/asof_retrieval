@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+# for each input listed under processed, add to this:
 INPUT_FILES = [
     Path("data/processed/fed_documents.jsonl"),
     Path("data/processed/bea_documents.jsonl"),

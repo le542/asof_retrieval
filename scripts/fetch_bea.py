@@ -2,7 +2,7 @@
 import hashlib
 import json
 import time
-from datetime import date, datetime
+from datetime import datetime, time as dt_time
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -12,11 +12,9 @@ import trafilatura
 INPUT_PATH = Path("data/raw/bea_releases_2025.json")
 OUTPUT_PATH = Path("data/processed/bea_documents.jsonl")
 
-RELEASE_HOUR = 8
-RELEASE_MINUTE = 30
+EASTERN = ZoneInfo("America/New_York")
 
-# Release dates whose 8:30 AM Eastern publication times
-# have been verified against official BEA records.
+# sourced from https://www.bea.gov/news/schedule/full-2025
 VERIFIED_RELEASE_DATES = {
     "2025-01-30",
     "2025-02-27",
@@ -31,31 +29,28 @@ VERIFIED_RELEASE_DATES = {
 }
 
 
-def collect():
+def main():
     if not INPUT_PATH.exists():
         raise FileNotFoundError(
             f"Missing {INPUT_PATH}. Run discover_bea.py first."
         )
 
-    with INPUT_PATH.open("r", encoding="utf-8") as f:
+    with INPUT_PATH.open(encoding="utf-8") as f:
         releases = json.load(f)
 
     print(f"Loaded {len(releases)} BEA releases")
 
+    session = requests.Session()
+    session.headers["User-Agent"] = "AsOfRetrieval"
+
     documents = []
     failed = []
 
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": "AsOfRetrieval/0.1 (academic research)"
-    })
-
     for i, release in enumerate(releases, start=1):
         url = release["url"]
-        title = release["title"]
         published_date = release["published_date"]
 
-        print(f"\n[{i}/{len(releases)}] {title}")
+        print(f"[{i}/{len(releases)}] {release['title']}")
 
         try:
             response = session.get(url, timeout=30)
@@ -68,79 +63,61 @@ def collect():
             )
 
             if not body or len(body.strip()) < 100:
-                print("  Failed to extract sufficient text")
-                failed.append(url)
-                continue
+                raise ValueError("Not enough text extracted")
 
-            release_day = date.fromisoformat(published_date)
-
-            eastern_time = datetime(
-                release_day.year,
-                release_day.month,
-                release_day.day,
-                RELEASE_HOUR,
-                RELEASE_MINUTE,
-                tzinfo=ZoneInfo("America/New_York"),
-            )
+            # archive gives us the date, but not the exact time.
+            release_date = datetime.fromisoformat(published_date).date()
+            published_at = datetime.combine(
+                release_date,
+                dt_time(8, 30), # use 8:30 AM Eastern for BEA GDP releases since that's when they usually publish
+                tzinfo=EASTERN,
+            ).isoformat()
 
             doc_id = "bea_" + hashlib.sha256(
                 url.encode("utf-8")
             ).hexdigest()[:12]
 
-            document = {
+            documents.append({
                 "doc_id": doc_id,
-                "title": title,
+                "title": release["title"],
                 "body": body,
                 "source": "bea.gov",
                 "source_type": "official",
                 "url": url,
-                "published_at": eastern_time.isoformat(),
-                "published_at_verified": (
-                    published_date in VERIFIED_RELEASE_DATES
-                ),
-                "gdelt_seen_at": None,
-            }
-
-            documents.append(document)
+                "published_at": published_at,
+                "published_at_verified": published_date in VERIFIED_RELEASE_DATES,
+                # "gdelt_seen_at": None,  # not needed anymore
+            })
 
             print(f"  Extracted {len(body)} characters")
-            print(f"  Publication date: {published_date}")
-            print(
-                f"  Timestamp verified: "
-                f"{document['published_at_verified']}"
-            )
 
-        except (requests.RequestException, ValueError) as e:
-            print(f"  Failed: {e}")
+        except (requests.RequestException, ValueError) as exc:
+            print(f"  Failed: {exc}")
             failed.append(url)
 
         time.sleep(1)
 
-    if documents:
-        documents.sort(key=lambda d: d["published_at"])
+    # Don't overwrite the existing dataset if any releases failed.
+    if failed:
+        print(f"\nFailed to process {len(failed)} releases:")
+        for url in failed:
+            print(f"  {url}")
+        print("Output not written.")
+        return
 
-        OUTPUT_PATH.parent.mkdir(
-            parents=True, exist_ok=True
-        )
+    if not documents:
+        print("\nNo documents extracted. Output not written.")
+        return
 
-        with OUTPUT_PATH.open("w", encoding="utf-8") as f:
-            for document in documents:
-                f.write(
-                    json.dumps(
-                        document, ensure_ascii=False
-                    ) + "\n"
-                )
+    documents.sort(key=lambda doc: doc["published_at"])
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-        print(f"\nSaved {len(documents)} documents")
-        print(f"Output: {OUTPUT_PATH}")
-    else:
-        print("\nNo documents extracted. Existing output unchanged.")
+    with OUTPUT_PATH.open("w", encoding="utf-8") as f:
+        for document in documents:
+            f.write(json.dumps(document, ensure_ascii=False) + "\n")
 
-    print(f"Failed releases: {len(failed)}")
-
-    for url in failed:
-        print(f"  {url}")
+    print(f"\nSaved {len(documents)} documents to {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":
-    collect()
+    main()

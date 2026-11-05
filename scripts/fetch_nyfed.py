@@ -19,10 +19,6 @@ YEAR = 2025
 REQUEST_DELAY = 1.5
 
 session = requests.Session()
-session.headers.update({
-    "User-Agent": "Mozilla/5.0 (compatible; academic research)"
-})
-
 
 def fetch_html(url):
     response = session.get(url, timeout=25)

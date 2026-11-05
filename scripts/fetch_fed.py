@@ -98,7 +98,7 @@ def collect():
                 "url": url,
                 "published_at": eastern_time.isoformat(),
                 "published_at_verified": True,
-                "gdelt_seen_at": None,
+                # "gdelt_seen_at": None,
             }
 
             documents.append(document)
