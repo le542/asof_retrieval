@@ -14,8 +14,8 @@ OUTPUT_PATH = Path("data/processed/bea_documents.jsonl")
 
 EASTERN = ZoneInfo("America/New_York")
 
-# sourced from https://www.bea.gov/news/schedule/full-2025
-VERIFIED_RELEASE_DATES = {
+# GDP dates checked against the official 2025 BEA release schedule, sourced from https://www.bea.gov/news/schedule/full-2025
+VERIFIED_GDP_DATES = {
     "2025-01-30",
     "2025-02-27",
     "2025-03-27",
@@ -49,6 +49,7 @@ def main():
     for i, release in enumerate(releases, start=1):
         url = release["url"]
         published_date = release["published_date"]
+        release_type = release["release_type"]
 
         print(f"[{i}/{len(releases)}] {release['title']}")
 
@@ -65,11 +66,24 @@ def main():
             if not body or len(body.strip()) < 100:
                 raise ValueError("Not enough text extracted")
 
-            # archive gives us the date, but not the exact time.
-            release_date = datetime.fromisoformat(published_date).date()
+            release_date = datetime.fromisoformat(
+                published_date
+            ).date()
+
+            # Only assign the scheduled time to verified GDP releases.
+            verified = (
+                release_type == "gdp"
+                and published_date in VERIFIED_GDP_DATES
+            )
+
+            release_time = (
+                dt_time(8, 30) if verified
+                else dt_time(23, 59, 59)
+            )
+
             published_at = datetime.combine(
                 release_date,
-                dt_time(8, 30), # use 8:30 AM Eastern for BEA GDP releases since that's when they usually publish
+                release_time,
                 tzinfo=EASTERN,
             ).isoformat()
 
@@ -83,10 +97,10 @@ def main():
                 "body": body,
                 "source": "bea.gov",
                 "source_type": "official",
+                "release_type": release_type,
                 "url": url,
                 "published_at": published_at,
-                "published_at_verified": published_date in VERIFIED_RELEASE_DATES,
-                # "gdelt_seen_at": None,  # not needed anymore
+                "published_at_verified": verified,
             })
 
             print(f"  Extracted {len(body)} characters")
@@ -97,7 +111,7 @@ def main():
 
         time.sleep(1)
 
-    # Don't overwrite the existing dataset if any releases failed.
+    # Preserve the previous dataset if collection was incomplete.
     if failed:
         print(f"\nFailed to process {len(failed)} releases:")
         for url in failed:
@@ -106,7 +120,7 @@ def main():
         return
 
     if not documents:
-        print("\nNo documents extracted. Output not written.")
+        print("No documents extracted. Output not written.")
         return
 
     documents.sort(key=lambda doc: doc["published_at"])
@@ -117,6 +131,13 @@ def main():
             f.write(json.dumps(document, ensure_ascii=False) + "\n")
 
     print(f"\nSaved {len(documents)} documents to {OUTPUT_PATH}")
+
+    for release_type in ("gdp", "pce"):
+        count = sum(
+            doc["release_type"] == release_type
+            for doc in documents
+        )
+        print(f"  {release_type.upper()}: {count}")
 
 
 if __name__ == "__main__":

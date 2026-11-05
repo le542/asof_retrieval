@@ -2,51 +2,127 @@
   {
     "title": "Gross Domestic Product, 4th Quarter and Year 2024 (Advance Estimate)",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-4th-quarter-and-year-2024-advance-estimate",
-    "published_date": "2025-01-30"
+    "published_date": "2025-01-30",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, December 2024",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-december-2024",
+    "published_date": "2025-01-31",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 4th Quarter and Year 2024 (Second Estimate)",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-4th-quarter-and-year-2024-second-estimate",
-    "published_date": "2025-02-27"
+    "published_date": "2025-02-27",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, January 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-january-2025",
+    "published_date": "2025-02-28",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 4th Quarter and Year 2024 (Third Estimate), GDP by Industry, and Corporate Profits",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-4th-quarter-and-year-2024-third-estimate-gdp-industry-and",
-    "published_date": "2025-03-27"
+    "published_date": "2025-03-27",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, February 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-february-2025",
+    "published_date": "2025-03-28",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 1st Quarter 2025 (Advance Estimate)",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-1st-quarter-2025-advance-estimate",
-    "published_date": "2025-04-30"
+    "published_date": "2025-04-30",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, March 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-march-2025",
+    "published_date": "2025-04-30",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product (Second Estimate), Corporate Profits (Preliminary Estimate),    1st Quarter 2025",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-second-estimate-corporate-profits-preliminary-estimate-1st-quarter",
-    "published_date": "2025-05-29"
+    "published_date": "2025-05-29",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, April 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-april-2025",
+    "published_date": "2025-05-30",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 1st Quarter 2025 (Third Estimate), GDP by Industry, and Corporate Profits (Revised)",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-1st-quarter-2025-third-estimate-gdp-industry-and-corporate-profits",
-    "published_date": "2025-06-26"
+    "published_date": "2025-06-26",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, May 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-may-2025",
+    "published_date": "2025-06-27",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 2nd Quarter 2025 (Advance Estimate)",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-2nd-quarter-2025-advance-estimate",
-    "published_date": "2025-07-30"
+    "published_date": "2025-07-30",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, June 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-june-2025",
+    "published_date": "2025-07-31",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 2nd Quarter 2025 (Second Estimate) and Corporate Profits (Preliminary)",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-2nd-quarter-2025-second-estimate-and-corporate-profits-preliminary",
-    "published_date": "2025-08-28"
+    "published_date": "2025-08-28",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, July 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-july-2025",
+    "published_date": "2025-08-29",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 2nd Quarter 2025 (Third Estimate), GDP by Industry, Corporate Profits (Revised), and Annual Update",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-2nd-quarter-2025-third-estimate-gdp-industry-corporate-profits",
-    "published_date": "2025-09-25"
+    "published_date": "2025-09-25",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, August 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-august-2025",
+    "published_date": "2025-09-26",
+    "release_type": "pce"
+  },
+  {
+    "title": "Personal Income and Outlays, September 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-september-2025",
+    "published_date": "2025-12-05",
+    "release_type": "pce"
   },
   {
     "title": "Gross Domestic Product, 3rd Quarter 2025 (Initial Estimate) and Corporate Profits (Preliminary)",
     "url": "https://www.bea.gov/news/2025/gross-domestic-product-3rd-quarter-2025-initial-estimate-and-corporate-profits",
-    "published_date": "2025-12-23"
+    "published_date": "2025-12-23",
+    "release_type": "gdp"
+  },
+  {
+    "title": "Personal Income and Outlays, Data Update, September 2025",
+    "url": "https://www.bea.gov/news/2025/personal-income-and-outlays-data-update-september-2025",
+    "published_date": "2025-12-23",
+    "release_type": "pce"
   }
 ]
