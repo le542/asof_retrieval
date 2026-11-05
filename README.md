@@ -1,5 +1,7 @@
 # AsOf Retrieval
 
+CORPUS: data/processed/corpus.jsonl
+
 Scripts specific to just getting the data for the project / explanation / source code as to how this corpus was built in the first place:
 
 ## Data Sources
