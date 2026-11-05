@@ -12,101 +12,135 @@ import trafilatura
 INPUT_PATH = Path("data/raw/bea_releases_2025.json")
 OUTPUT_PATH = Path("data/processed/bea_documents.jsonl")
 
-# Provisional time; verify before historical evaluation.
 RELEASE_HOUR = 8
 RELEASE_MINUTE = 30
 
-if not INPUT_PATH.exists():
-    raise FileNotFoundError(
-        f"Missing {INPUT_PATH}. Run discover_bea.py first."
-    )
+# Release dates whose 8:30 AM Eastern publication times
+# have been verified against official BEA records.
+VERIFIED_RELEASE_DATES = {
+    "2025-01-30",
+    "2025-02-27",
+    "2025-03-27",
+    "2025-04-30",
+    "2025-05-29",
+    "2025-06-26",
+    "2025-07-30",
+    "2025-08-28",
+    "2025-09-25",
+    "2025-12-23",
+}
 
-with INPUT_PATH.open("r", encoding="utf-8") as f:
-    releases = json.load(f)
 
-print(f"Loaded {len(releases)} BEA releases")
-
-documents = []
-failed = []
-
-session = requests.Session()
-session.headers.update({
-    "User-Agent": "AsOfRetrieval/0.1 (academic research)"
-})
-
-for i, release in enumerate(releases, start=1):
-    url = release["url"]
-    title = release["title"]
-    published_date = release["published_date"]
-
-    print(f"\n[{i}/{len(releases)}] {title}")
-
-    try:
-        response = session.get(url, timeout=30)
-        response.raise_for_status()
-
-        body = trafilatura.extract(
-            response.text,
-            include_comments=False,
-            include_tables=False,
+def collect():
+    if not INPUT_PATH.exists():
+        raise FileNotFoundError(
+            f"Missing {INPUT_PATH}. Run discover_bea.py first."
         )
 
-        if not body or len(body.strip()) < 100:
-            print("  Failed to extract sufficient text")
+    with INPUT_PATH.open("r", encoding="utf-8") as f:
+        releases = json.load(f)
+
+    print(f"Loaded {len(releases)} BEA releases")
+
+    documents = []
+    failed = []
+
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "AsOfRetrieval/0.1 (academic research)"
+    })
+
+    for i, release in enumerate(releases, start=1):
+        url = release["url"]
+        title = release["title"]
+        published_date = release["published_date"]
+
+        print(f"\n[{i}/{len(releases)}] {title}")
+
+        try:
+            response = session.get(url, timeout=30)
+            response.raise_for_status()
+
+            body = trafilatura.extract(
+                response.text,
+                include_comments=False,
+                include_tables=False,
+            )
+
+            if not body or len(body.strip()) < 100:
+                print("  Failed to extract sufficient text")
+                failed.append(url)
+                continue
+
+            release_day = date.fromisoformat(published_date)
+
+            eastern_time = datetime(
+                release_day.year,
+                release_day.month,
+                release_day.day,
+                RELEASE_HOUR,
+                RELEASE_MINUTE,
+                tzinfo=ZoneInfo("America/New_York"),
+            )
+
+            doc_id = "bea_" + hashlib.sha256(
+                url.encode("utf-8")
+            ).hexdigest()[:12]
+
+            document = {
+                "doc_id": doc_id,
+                "title": title,
+                "body": body,
+                "source": "bea.gov",
+                "source_type": "official",
+                "url": url,
+                "published_at": eastern_time.isoformat(),
+                "published_at_verified": (
+                    published_date in VERIFIED_RELEASE_DATES
+                ),
+                "gdelt_seen_at": None,
+            }
+
+            documents.append(document)
+
+            print(f"  Extracted {len(body)} characters")
+            print(f"  Publication date: {published_date}")
+            print(
+                f"  Timestamp verified: "
+                f"{document['published_at_verified']}"
+            )
+
+        except (requests.RequestException, ValueError) as e:
+            print(f"  Failed: {e}")
             failed.append(url)
-            continue
 
-        release_day = date.fromisoformat(published_date)
+        time.sleep(1)
 
-        eastern_time = datetime(
-            release_day.year,
-            release_day.month,
-            release_day.day,
-            RELEASE_HOUR,
-            RELEASE_MINUTE,
-            tzinfo=ZoneInfo("America/New_York"),
+    if documents:
+        documents.sort(key=lambda d: d["published_at"])
+
+        OUTPUT_PATH.parent.mkdir(
+            parents=True, exist_ok=True
         )
 
-        doc_id = "bea_" + hashlib.sha256(
-            url.encode("utf-8")
-        ).hexdigest()[:12]
+        with OUTPUT_PATH.open("w", encoding="utf-8") as f:
+            for document in documents:
+                f.write(
+                    json.dumps(
+                        document, ensure_ascii=False
+                    ) + "\n"
+                )
 
-        document = {
-            "doc_id": doc_id,
-            "title": title,
-            "body": body,
-            "source": "bea.gov",
-            "source_type": "official",
-            "url": url,
-            "published_at": eastern_time.isoformat(),
-            "published_at_verified": False,
-            "gdelt_seen_at": None,
-        }
+        print(f"\nSaved {len(documents)} documents")
+        print(f"Output: {OUTPUT_PATH}")
+    else:
+        print("\nNo documents extracted. Existing output unchanged.")
 
-        documents.append(document)
+    print(f"Failed releases: {len(failed)}")
 
-        print(f"  Extracted {len(body)} characters")
-        print(f"  Publication date: {published_date}")
+    for url in failed:
+        print(f"  {url}")
 
-    except (requests.RequestException, ValueError) as e:
-        print(f"  Failed: {e}")
-        failed.append(url)
 
-    time.sleep(1)
-
-if documents:
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-    with OUTPUT_PATH.open("w", encoding="utf-8") as f:
-        for document in documents:
-            f.write(json.dumps(document, ensure_ascii=False) + "\n")
-
-    print(f"\nSaved {len(documents)} documents")
-    print(f"Output: {OUTPUT_PATH}")
-else:
-    print("\nNo documents extracted. Existing output unchanged.")
-
-print(f"Failed releases: {len(failed)}")
-
-for url in failed:
-    print(f"  {url}")
+if __name__ == "__main__":
+    collect()
