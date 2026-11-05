@@ -7,7 +7,7 @@ Scripts specific to just getting the data for the project / explanation / source
 Documents that were collected
 
 FOMC statements from Federal Reserve: 
-- Automated Collection, but the dates were hard coded manually in the script
+- Automated Collection (but the dates were hard coded manually in the script from https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm - TODO: get this dynamically??) 
 
 GDP news releases from Bureau of Economic Analysis (BEA)
 - Automated archive discovery and document extraction (two scripts)
