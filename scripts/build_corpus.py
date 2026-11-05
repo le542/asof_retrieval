@@ -8,7 +8,8 @@ INPUT_FILES = [
     Path("data/processed/fed_documents.jsonl"),
     Path("data/processed/bea_documents.jsonl"),
     Path("data/processed/bls_documents.jsonl"),
-    Path("data/processed/nyfed_documents.jsonl")
+    Path("data/processed/nyfed_documents.jsonl"),
+    Path("data/processed/bls_employment_documents.jsonl"),
 ]
 
 OUTPUT_PATH = Path("data/processed/corpus.jsonl")
