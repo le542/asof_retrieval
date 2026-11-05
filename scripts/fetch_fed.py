@@ -34,9 +34,6 @@ def collect():
     failures = []
 
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": "AsOfRetrieval/0.1 (academic research)"
-    })
 
     for i, date_string in enumerate(
         VERIFIED_RELEASE_DATES, start=1

@@ -62,7 +62,7 @@ Output: `data/processed/bea_documents.jsonl`
 
 ### Bureau of Labor Statistics (BLS)
 
-We were not able to fetch BLS releases because of access restrictions and timeouts so just went to https://www.bls.gov/bls/news-release/cpi.htm?utm_source=chatgpt.com
+We were not able to fetch BLS releases because of access restrictions and timeouts so just went to https://www.bls.gov/bls/news-release/cpi.htm
 
 Download and save the relevant CPI release HTML pages in:
 
