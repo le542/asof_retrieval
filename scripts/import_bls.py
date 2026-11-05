@@ -8,9 +8,6 @@ from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 
-NUM_EXPECTED_DOCS=8 # CHANGE THIS DEPENDING ON HOW MANY DOCS YOU IMPORT
-RAW_DIR = Path("data/raw/bls")
-OUTPUT_FILE = Path("data/processed/bls_documents.jsonl")
 EASTERN = ZoneInfo("America/New_York")
 
 REPORTS = {
@@ -47,13 +44,13 @@ RELEASE_PATTERN = re.compile(
 )
 
 
-def import_file(path):
+def import_file(path, report_type):
     html = path.read_text(encoding="utf-8", errors="replace")
     soup = BeautifulSoup(html, "html.parser")
 
     content = soup.select_one("#bodytext .normalnews")
     if content is None:
-        raise ValueError("Could not find CPI report content")
+        raise ValueError("Could not find report content")
 
     first_pre = content.find("pre")
     if first_pre is None:
@@ -65,9 +62,10 @@ def import_file(path):
     if not date_match:
         raise ValueError("Could not verify publication date")
 
-    release_date = datetime.strptime(
-        date_match.group(1), "%B %d, %Y"
-    )
+    release_date = datetime.strptime(date_match.group(1), "%B %d, %Y")
+
+    if release_date.year != 2025:
+        raise ValueError("Publication date is outside 2025")
 
     published_at = release_date.replace(
         hour=8,
@@ -75,9 +73,9 @@ def import_file(path):
         tzinfo=EASTERN,
     ).isoformat()
 
-    report_match = REPORT_PATTERN.search(header)
+    report_match = REPORTS[report_type]["heading"].search(header)
     if not report_match:
-        raise ValueError("Could not identify CPI reporting month")
+        raise ValueError("Could not identify reporting month")
 
     report_month = report_match.group(1).title()
 
@@ -90,9 +88,13 @@ def import_file(path):
     if urlparse(url).hostname != "www.bls.gov":
         raise ValueError("Unexpected source URL")
 
-    for element in content.select(
-        "script, style, nav, button"
-    ):
+    expected_prefix = (
+        "cpi_" if report_type == "cpi" else "empsit_"
+    )
+    if expected_prefix not in url:
+        raise ValueError("Source URL does not match report type")
+
+    for element in content.select("script, style, nav, button"):
         element.decompose()
 
     body = content.get_text("\n", strip=True)
@@ -101,9 +103,15 @@ def import_file(path):
     if len(body) < 500:
         raise ValueError("Extracted report is unexpectedly short")
 
+    title_prefix = (
+        "Consumer Price Index"
+        if report_type == "cpi"
+        else "Employment Situation"
+    )
+
     return {
-        "doc_id": f"bls_cpi_{release_date:%Y%m%d}",
-        "title": f"Consumer Price Index - {report_month}",
+        "doc_id": f"bls_{report_type}_{release_date:%Y%m%d}",
+        "title": f"{title_prefix} - {report_month}",
         "body": body,
         "source": "bls.gov",
         "source_type": "official",
