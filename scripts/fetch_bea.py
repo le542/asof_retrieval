@@ -2,56 +2,47 @@
 import hashlib
 import json
 import time
+from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 import trafilatura
 
+INPUT_PATH = Path("data/raw/bea_releases_2025.json")
 OUTPUT_PATH = Path("data/processed/bea_documents.jsonl")
 
-RELEASES = [
-    {
-        "url": (
-            "https://www.bea.gov/news/2025/"
-            "gross-domestic-product-4th-quarter-and-year-2024-advance"
-        ),
-        "title": "Gross Domestic Product, Q4 2024 (Advance Estimate)",
-        "published_at": "2025-01-30T08:30:00-05:00",
-    },
-    {
-        "url": (
-            "https://www.bea.gov/news/2025/"
-            "gross-domestic-product-1st-quarter-2025-advance-estimate"
-        ),
-        "title": "Gross Domestic Product, Q1 2025 (Advance Estimate)",
-        "published_at": "2025-04-30T08:30:00-04:00",
-    },
-    {
-        "url": (
-            "https://www.bea.gov/news/2025/"
-            "gross-domestic-product-2nd-quarter-2025-advance-estimate"
-        ),
-        "title": "Gross Domestic Product, Q2 2025 (Advance Estimate)",
-        "published_at": "2025-07-30T08:30:00-04:00",
-    },
-    {
-        "url": (
-            "https://www.bea.gov/news/2025/"
-            "gross-domestic-product-3rd-quarter-2025-advance-estimate"
-        ),
-        "title": "Gross Domestic Product, Q3 2025 (Advance Estimate)",
-        "published_at": None,
-    },
-]
+# Provisional time; verify before historical evaluation.
+RELEASE_HOUR = 8
+RELEASE_MINUTE = 30
+
+if not INPUT_PATH.exists():
+    raise FileNotFoundError(
+        f"Missing {INPUT_PATH}. Run discover_bea.py first."
+    )
+
+with INPUT_PATH.open("r", encoding="utf-8") as f:
+    releases = json.load(f)
+
+print(f"Loaded {len(releases)} BEA releases")
 
 documents = []
+failed = []
 
-for i, release in enumerate(RELEASES):
+session = requests.Session()
+session.headers.update({
+    "User-Agent": "AsOfRetrieval/0.1 (academic research)"
+})
+
+for i, release in enumerate(releases, start=1):
     url = release["url"]
-    print(f"[{i + 1}/{len(RELEASES)}] Fetching: {url}")
+    title = release["title"]
+    published_date = release["published_date"]
+
+    print(f"\n[{i}/{len(releases)}] {title}")
 
     try:
-        response = requests.get(url, timeout=30)
+        response = session.get(url, timeout=30)
         response.raise_for_status()
 
         body = trafilatura.extract(
@@ -60,9 +51,21 @@ for i, release in enumerate(RELEASES):
             include_tables=False,
         )
 
-        if not body:
-            print("  Could not extract release text")
+        if not body or len(body.strip()) < 100:
+            print("  Failed to extract sufficient text")
+            failed.append(url)
             continue
+
+        release_day = date.fromisoformat(published_date)
+
+        eastern_time = datetime(
+            release_day.year,
+            release_day.month,
+            release_day.day,
+            RELEASE_HOUR,
+            RELEASE_MINUTE,
+            tzinfo=ZoneInfo("America/New_York"),
+        )
 
         doc_id = "bea_" + hashlib.sha256(
             url.encode("utf-8")
@@ -70,21 +73,24 @@ for i, release in enumerate(RELEASES):
 
         document = {
             "doc_id": doc_id,
-            "title": release["title"],
+            "title": title,
             "body": body,
             "source": "bea.gov",
             "source_type": "official",
             "url": url,
-            "published_at": release["published_at"],
+            "published_at": eastern_time.isoformat(),
+            "published_at_verified": False,
             "gdelt_seen_at": None,
         }
 
         documents.append(document)
 
         print(f"  Extracted {len(body)} characters")
+        print(f"  Publication date: {published_date}")
 
-    except requests.RequestException as e:
-        print(f"  Request failed: {e}")
+    except (requests.RequestException, ValueError) as e:
+        print(f"  Failed: {e}")
+        failed.append(url)
 
     time.sleep(1)
 
@@ -95,6 +101,12 @@ if documents:
         for document in documents:
             f.write(json.dumps(document, ensure_ascii=False) + "\n")
 
-    print(f"\nSaved {len(documents)} documents to {OUTPUT_PATH}")
+    print(f"\nSaved {len(documents)} documents")
+    print(f"Output: {OUTPUT_PATH}")
 else:
-    print("\nNo documents retrieved. Existing output left unchanged.")
+    print("\nNo documents extracted. Existing output unchanged.")
+
+print(f"Failed releases: {len(failed)}")
+
+for url in failed:
+    print(f"  {url}")
