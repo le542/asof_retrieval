@@ -122,43 +122,47 @@ def import_file(path, report_type):
     }
 
 
-def main():
-    files = sorted(RAW_DIR.glob("*.html"))
-    print(f"Found {len(files)} HTML files")
+def import_reports(report_type):
+    config = REPORTS[report_type]
+    files = sorted(config["folder"].glob("*.html"))
+
+    print(f"\nImporting {report_type}: found {len(files)} HTML files")
 
     documents = []
     failures = []
 
     for path in files:
         try:
-            document = import_file(path)
+            document = import_file(path, report_type)
             documents.append(document)
-            print(
-                f"OK: {document['title']} "
-                f"({document['published_at']})"
-            )
+            print(f"OK: {document['title']} ({document['published_at']})")
         except Exception as exc:
             failures.append((path.name, str(exc)))
             print(f"FAILED: {path.name}: {exc}")
 
-    if failures or len(documents) != NUM_EXPECTED_DOCS: 
+    if failures or len(documents) != config["expected"]:
         print(
-            f"\nExpected 8 valid reports; "
+            f"Expected {config['expected']} valid {report_type} reports; "
             f"got {len(documents)}."
         )
-        print("Output not written. Fix the issues first.")
+        print("Output not written.")
         return
 
-    documents.sort(key=lambda d: d["published_at"])
+    if len({doc["doc_id"] for doc in documents}) != len(documents):
+        print("Duplicate publication dates found. Output not written.")
+        return
 
-    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    documents.sort(key=lambda doc: doc["published_at"])
 
-    with OUTPUT_FILE.open("w", encoding="utf-8") as f:
+    config["output"].parent.mkdir(parents=True, exist_ok=True)
+
+    with config["output"].open("w", encoding="utf-8") as f:
         for document in documents:
             f.write(json.dumps(document, ensure_ascii=False) + "\n")
 
-    print(f"\nSaved {len(documents)} documents to {OUTPUT_FILE}")
+    print(f"Saved {len(documents)} documents to {config['output']}")
 
 
 if __name__ == "__main__":
-    main()
+    import_reports("cpi")
+    import_reports("employment")
