@@ -11,6 +11,7 @@ FOMC statements from Federal Reserve:
 
 GDP news releases from Bureau of Economic Analysis (BEA)
 - Automated archive discovery and document extraction (two scripts)
+- GDP release dates also fetched and hard coded from https://www.bea.gov/news/schedule/full-2025 
 
 CPI news releases from Bureau of Labor Statistics (BLS)
 - Manually downloaded HTML files, and parsed via script
