@@ -11,8 +11,7 @@ import trafilatura
 
 OUTPUT_PATH = Path("data/processed/fed_documents.jsonl")
 
-# FOMC statement dates whose 2:00 PM Eastern release
-# times have been verified against official Fed records.
+# https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
 VERIFIED_RELEASE_DATES = [
     "20250129",
     "20250319",

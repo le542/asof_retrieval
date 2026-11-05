@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 
+NUM_EXPECTED_DOCS=8 # CHANGE THIS DEPENDING ON HOW MANY DOCS YOU IMPORT
 RAW_DIR = Path("data/raw/bls")
 OUTPUT_FILE = Path("data/processed/bls_documents.jsonl")
 EASTERN = ZoneInfo("America/New_York")
@@ -113,7 +114,7 @@ def main():
             failures.append((path.name, str(exc)))
             print(f"FAILED: {path.name}: {exc}")
 
-    if failures or len(documents) != 8:
+    if failures or len(documents) != NUM_EXPECTED_DOCS: 
         print(
             f"\nExpected 8 valid reports; "
             f"got {len(documents)}."
