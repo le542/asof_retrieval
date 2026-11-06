@@ -11,12 +11,12 @@ Documents that were collected
 FOMC statements from Federal Reserve: 
 - Automated Collection (but the dates were hard coded manually in the script from https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm - TODO: get this dynamically??) 
 
-GDP news releases from Bureau of Economic Analysis (BEA)
+GDP news releases and Personal Consumption Expenditures (PCE) from Bureau of Economic Analysis (BEA)
 - Automated archive discovery and document extraction (two scripts)
 - GDP release dates also fetched and hard coded from https://www.bea.gov/news/schedule/full-2025 
 
-CPI news releases from Bureau of Labor Statistics (BLS)
-- Manually downloaded HTML files, and parsed via script
+CPI and Unemployment news releases from Bureau of Labor Statistics (BLS)
+- Manually downloaded HTML files, and parsed via script (two scripts)
 
 Liberty Street Economics articles from Federal Reserve Bank of New York
 - Automated archive discovery and document extraction (combined singular script)
