@@ -12,3 +12,8 @@ data/processed/
 
 # macOS
 .DS_Store
+
+# Retrieval build artifacts (rebuild with: python -m retrieval.build_index)
+indexes/
+data/pyserini_input/
+runs/
